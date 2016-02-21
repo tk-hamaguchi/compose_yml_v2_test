@@ -1,0 +1,32 @@
+version: '2'
+services:
+  front:
+    build: ./front
+    ports:
+      - '18888:80'
+      - '18443:443'
+    environment:
+      NGINX_VERSION: '1.9.11'
+      NGINX_DEVEL_KIT_VERSION: '0.2.19'
+      LUA_NGINX_MODULE_VERSION: '0.10.1rc1'
+      LUAROCKS_VERSION: '2.0.8'
+    volumes:
+      - ./front/volumes/etc/nginx/conf.d:/etc/nginx/conf.d
+      - ./front/volumes/usr/share/nginx/html:/usr/share/nginx/html
+    depends_on:
+      - redis
+    links:
+      - redis
+  redis:
+    image: redis:3.0
+  worker:
+    build: ./worker
+    environment:
+      SIDEKIQ_QUEUE: 'test'
+      SIDEKIQ_ENV: 'production'
+      SIDEKIQ_CONCURRENCY: 25
+    depends_on:
+      - redis
+    links:
+      - redis
+
